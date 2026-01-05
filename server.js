@@ -16,7 +16,7 @@ setInterval(() => {
     value: Math.random()
   };
   console.log("📤 Novo evento:", lastEvent);
-}, 5000);
+}, 10000);
 
 // endpoint que o ESP chama
 app.get('/event', (req, res) => {
