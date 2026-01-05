@@ -1,32 +1,22 @@
-const express = require('express');
-const app = express();
+import { WebSocketServer } from "ws";
 
-const PORT = process.env.PORT || 8080;
+const wss = new WebSocketServer({ port: process.env.PORT || 3000 });
 
-let lastEvent = {
-  type: "boot",
-  timestamp: new Date().toISOString()
-};
+wss.on("connection", (ws) => {
+  console.log("✅ ESP conectado via WebSocket");
 
-// atualiza o JSON a cada 5s
-setInterval(() => {
-  lastEvent = {
-    type: "event",
-    timestamp: new Date().toISOString(),
-    value: Math.random()
-  };
-  console.log("📤 Novo evento:", lastEvent);
-}, 10000);
+  // envia evento a cada 10s (exemplo)
+  const interval = setInterval(() => {
+    const msg = JSON.stringify({
+      event: "vibrate",
+      ts: Date.now()
+    });
+    ws.send(msg);
+    console.log("📤 Evento enviado");
+  }, 10000);
 
-// endpoint que o ESP chama
-app.get('/event', (req, res) => {
-  res.json(lastEvent);
-});
-
-app.get('/', (req, res) => {
-  res.send("OK");
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 HTTP server rodando na porta ${PORT}`);
+  ws.on("close", () => {
+    console.log("❌ ESP desconectado");
+    clearInterval(interval);
+  });
 });
