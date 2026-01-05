@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Notification Client</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+
+    #log {
+      white-space: pre-wrap;
+      background: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-height: 400px;
+      overflow-y: scroll;
+    }
+
+    input,
+    button {
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    .connected {
+      color: green;
+    }
+
+    .disconnected {
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>🚦 Push Notification Client</h2>
+
+  <label for="userId">Enter your user ID:</label>
+  <input type="text" id="userId" placeholder="e.g. motorista123">
+  <button onclick="connect()">Connect</button>
+  <span id="status" class="disconnected">Disconnected</span>
+
+  <h3>📨 Notifications:</h3>
+  <div id="log"></div>
+
+  <script>
+    let socket;
+    const log = document.getElementById('log');
+    const status = document.getElementById('status');
+
+    function connect() {
+      const userId = document.getElementById('userId').value.trim();
+      if (!userId) {
+        alert('Please enter a user ID');
+        return;
+      }
+
+      const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+      const host = location.host;
+      socket = new WebSocket(`${protocol}://${host}?user_id=${encodeURIComponent(userId)}`);
+
+      socket.onopen = () => {
+        status.textContent = 'Connected';
+        status.className = 'connected';
+        log.textContent += `✅ Connected as "${userId}"\n`;
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        log.textContent += `📥 Received:\n${JSON.stringify(data, null, 2)}\n\n`;
+        log.scrollTop = log.scrollHeight;
+      };
+
+      socket.onclose = () => {
+        status.textContent = 'Disconnected';
+        status.className = 'disconnected';
+        log.textContent += `❌ Disconnected\n`;
+      };
+
+      socket.onerror = (err) => {
+        log.textContent += `⚠️ Error: ${err.message}\n`;
+      };
+    }
+  </script>
+</body>
+
+</html>
